@@ -85,7 +85,7 @@ typedef struct XPARAMS
 typedef struct THREAD_SUSPENSIONS
 {
 	pthread_t hThread;
-	xTaskHandle hTask;
+	StackType_t *hTaskStackBase;
 	unsigned portBASE_TYPE uxCriticalNesting;
 } xThreadState;
 /*-----------------------------------------------------------*/
@@ -139,7 +139,7 @@ void vPortStartFirstTask( void );
 /*
  * See header file for description.
  */
-portSTACK_TYPE *pxPortInitialiseStack( portSTACK_TYPE *pxTopOfStack, pdTASK_CODE pxCode, void *pvParameters )
+StackType_t *pxPortInitialiseStack( StackType_t *pxTopOfStack, StackType_t *pxEndOfStack, TaskFunction_t pxCode, void *pvParameters )
 {
 /* Should actually keep this struct on the stack. */
 xParams *pxThisThreadParams = pvPortMalloc( sizeof( xParams ) );
@@ -171,6 +171,10 @@ xParams *pxThisThreadParams = pvPortMalloc( sizeof( xParams ) );
 		{
 			/* Thread create failed, signal the failure */
 			pxTopOfStack = 0;
+		}
+		else
+		{
+			vPortAddTaskHandle(pxEndOfStack);
 		}
 
 		/* Wait until the task suspends. */
@@ -613,7 +617,7 @@ portLONG lIndex;
 	for ( lIndex = 0; lIndex < MAX_NUMBER_OF_TASKS; lIndex++ )
 	{
 		pxThreads[ lIndex ].hThread = ( pthread_t )NULL;
-		pxThreads[ lIndex ].hTask = ( xTaskHandle )NULL;
+		pxThreads[ lIndex ].hTaskStackBase = ( StackType_t* )NULL;
 		pxThreads[ lIndex ].uxCriticalNesting = 0;
 	}
 
@@ -649,9 +653,12 @@ pthread_t prvGetThreadHandle( xTaskHandle hTask )
 {
 pthread_t hThread = ( pthread_t )NULL;
 portLONG lIndex;
+TaskStatus_t pxTaskStatus;
+	vTaskGetTaskInfo(hTask,&pxTaskStatus, pdTRUE, eInvalid );
+	
 	for ( lIndex = 0; lIndex < MAX_NUMBER_OF_TASKS; lIndex++ )
 	{
-		if ( pxThreads[ lIndex ].hTask == hTask )
+		if ( pxThreads[ lIndex ].hTaskStackBase == pxTaskStatus.pxStackBase )
 		{
 			hThread = pxThreads[ lIndex ].hThread;
 			break;
@@ -721,7 +728,7 @@ portLONG lIndex;
 		if ( pxThreads[ lIndex ].hThread == ( pthread_t )xThreadId )
 		{
 			pxThreads[ lIndex ].hThread = (pthread_t)NULL;
-			pxThreads[ lIndex ].hTask = (xTaskHandle)NULL;
+			pxThreads[ lIndex ].hTaskStackBase = (StackType_t*)NULL;
 			if ( pxThreads[ lIndex ].uxCriticalNesting > 0 )
 			{
 				uxCriticalNesting = 0;
@@ -734,19 +741,18 @@ portLONG lIndex;
 }
 /*-----------------------------------------------------------*/
 
-void vPortAddTaskHandle( void *pxTaskHandle )
+void vPortAddTaskHandle( void *hTaskStackBase )
 {
 portLONG lIndex;
-
-	pxThreads[ lIndexOfLastAddedTask ].hTask = ( xTaskHandle )pxTaskHandle;
+	pxThreads[ lIndexOfLastAddedTask ].hTaskStackBase = ( StackType_t*)hTaskStackBase;
 	for ( lIndex = 0; lIndex < MAX_NUMBER_OF_TASKS; lIndex++ )
 	{
 		if ( pxThreads[ lIndex ].hThread == pxThreads[ lIndexOfLastAddedTask ].hThread )
 		{
-			if ( pxThreads[ lIndex ].hTask != pxThreads[ lIndexOfLastAddedTask ].hTask )
+			if ( pxThreads[ lIndex ].hTaskStackBase != pxThreads[ lIndexOfLastAddedTask ].hTaskStackBase )
 			{
 				pxThreads[ lIndex ].hThread = ( pthread_t )NULL;
-				pxThreads[ lIndex ].hTask = NULL;
+				pxThreads[ lIndex ].hTaskStackBase = (StackType_t*)NULL;
 				pxThreads[ lIndex ].uxCriticalNesting = 0;
 			}
 		}

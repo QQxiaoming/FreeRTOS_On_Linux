@@ -142,8 +142,8 @@ extern void vPortExitCritical( void );
 extern void vPortForciblyEndThread( void *pxTaskToDelete );
 #define traceTASK_DELETE( pxTaskToDelete )		vPortForciblyEndThread( pxTaskToDelete )
 
-extern void vPortAddTaskHandle( void *pxTaskHandle );
-#define traceTASK_CREATE( pxNewTCB )			vPortAddTaskHandle( pxNewTCB )
+extern void vPortAddTaskHandle( void *pxStackBase );
+#define portHAS_STACK_OVERFLOW_CHECKING 1
 
 /* Posix Signal definitions that can be changed or read as appropriate. */
 #define SIG_SUSPEND					SIGUSR1
