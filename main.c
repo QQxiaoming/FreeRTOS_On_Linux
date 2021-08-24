@@ -21,6 +21,7 @@ int main(void)
     BaseType_t xReturn = pdPASS;
 
     printf("Freertos v10.2.1\n");
+    fflush(stdout);
 
     xReturn = xTaskCreate(  (TaskFunction_t )task,
                             (const char *   )"task",

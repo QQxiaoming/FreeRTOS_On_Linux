@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+    branches: [ master ]
+    paths-ignore:
+      - 'doc/**'
+      - 'README.md'
+      - '.readthedocs.yaml'
+  pull_request:
+    branches: [ master ]
+    paths-ignore:
+      - 'doc/**'
+      - 'README.md'
+      - '.readthedocs.yaml'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install prerequisites
+        run: |
+          sudo apt update
+          sudo apt install -y make gcc
+
+      - name: Build all
+        run: |
+          make
+      
+      - name: Upload build asserts
+        uses: actions/upload-artifact@v2.2.4
+        with:
+          name: output
+          path: |
+            ./build/FreeRTOS_Posix.elf
+
+      - name: Run tests
+        run: |
+          timeout --foreground -s SIGKILL 1m ./build/FreeRTOS_Posix.elf > >(tee run.log) || {
+            if cat run.log | grep "Freertos v10.2.1" ; then echo "Pass" && exit 0; else echo "Failed" && exit 1; fi; 
+          }

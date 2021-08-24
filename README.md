@@ -1,3 +1,5 @@
+[![CI](https://github.com/QQxiaoming/FreeRTOS_On_Linux/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/QQxiaoming/FreeRTOS_On_Linux/actions/workflows/ci.yml)
+
 # FreeRTOS_On_Linux
 
 ## 介绍
