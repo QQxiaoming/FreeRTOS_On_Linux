@@ -1,4 +1,5 @@
 [![CI](https://github.com/QQxiaoming/FreeRTOS_On_Linux/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/QQxiaoming/FreeRTOS_On_Linux/actions/workflows/ci.yml)
+[![License](https://img.shields.io/github/license/qqxiaoming/FreeRTOS_On_Linux.svg?colorB=f48041&style=flat-square)](https://github.com/QQxiaoming/FreeRTOS_On_Linux)
 
 # FreeRTOS_On_Linux
 
